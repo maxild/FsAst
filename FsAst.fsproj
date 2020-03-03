@@ -20,12 +20,12 @@
     <Compile Include="AstRcd.fs" />
     <Compile Include="AstCreate.fs" />
     <Compile Include="PrintAstInfo.fs" />
-    <Compile Include="FormatFs.fs" />
     <Compile Include="CreateAst.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Update="FSharp.Core" Version="4.3.4" />
-    <PackageReference Include="Fantomas" Version="2.9.0" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-18618-05" PrivateAssets="All"/>
+    <!--<PackageReference Include="Fantomas" Version="2.9.0" />-->
+      <PackageReference Include="FSharp.Compiler.Service" Version="23.0.3" />
+      <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-18618-05" PrivateAssets="All" />
   </ItemGroup>
 </Project>

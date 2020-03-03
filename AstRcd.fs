@@ -5,7 +5,7 @@ open System
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
 
-type ParsedImplFileInputRcd = { 
+type ParsedImplFileInputRcd = {
     File: string
     IsScript: bool
     QualName: QualifiedNameOfFile
@@ -85,14 +85,14 @@ type SynTypeDefnReprSimpleRcd = {
     Repr: SynTypeDefnSimpleRepr
     Range: range }
 with
-    member x.FromRcd = 
+    member x.FromRcd =
         SynTypeDefnRepr.Simple(x.Repr, x.Range)
 
 [<RequireQualifiedAccess>]
 type SynTypeDefnReprRcd =
     | ObjectModel of SynTypeDefnReprObjectModelRcd
     | Simple of SynTypeDefnReprSimpleRcd
-with 
+with
     member x.FromRcd =
         match x with
         | ObjectModel om -> om.FromRcd
@@ -171,7 +171,7 @@ and SynPatParenRcd = {
 and SynPatNullRcd = {
     Range: range }
 
-type SynPatRcd  with 
+type SynPatRcd  with
     member x.FromRcd =
         match x with
         | Const c -> c.FromRcd
@@ -225,7 +225,7 @@ type SynPat with
             SynPatRcd.Paren { Pattern = pattern.ToRcd; Range = range }
 //        | SynPat.ArrayOrList
 //        | SynPat.Record
-        | SynPat.Null range -> 
+        | SynPat.Null range ->
             SynPatRcd.Null { Range = range }
 //        | SynPat.OptionalVal
 //        | SynPat.IsInst
@@ -363,7 +363,7 @@ type SynTypeDefnSimpleRepr with
 
 type SynEnumCaseRcd = {
     Attributes: SynAttributes
-    Id: Ident 
+    Id: Ident
     Constant: SynConst
     XmlDoc: PreXmlDoc
     Range: range }
@@ -376,7 +376,7 @@ type SynEnumCase with
         match x with
         | EnumCase(attributes, id, constant, xmlDoc, range) ->
             { Attributes = attributes; Id = id; Constant = constant; XmlDoc = xmlDoc; Range = range }
-    
+
 type XmlDoc with
     member x.Lines =
         match x with
@@ -397,7 +397,7 @@ type SynUnionCaseRcd = {
 with
     member x.FromRcd =
         SynUnionCase.UnionCase(x.Attributes, x.Id, x.Type, x.XmlDoc, x.Access, x.Range)
-        
+
 type SynUnionCase with
     member x.ToRcd : SynUnionCaseRcd =
         match x with
@@ -429,4 +429,4 @@ type SynField with
                XmlDoc = xmlDoc
                Access = access
                Range = range }
-    
+

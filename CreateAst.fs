@@ -1,11 +1,10 @@
 [<AutoOpen>]
 module FsAst.CreateAst
 
-open System
-open Fantomas
+// TODO: This file should be moved to Samples/Tests
+
 open Microsoft.FSharp.Compiler.Ast
 open Microsoft.FSharp.Compiler.Range
-open Microsoft.FSharp.Quotations
 
 let createBasicClass() =
     let mdl = "BasicClass"
@@ -31,8 +30,8 @@ let createBasicClass() =
                     .AddDeclaration(typ)
             )
     )
-    |> formatAst
-    |> printfn "%s"
+    //|> formatAst
+    //|> printfn "%s"
 
 let createBasicEnums() =
     let mdl = "BasicEnums"
@@ -62,15 +61,15 @@ let createBasicEnums() =
                     .AddDeclaration(typ)
             )
     )
-    |> formatAst
-    |> printfn "%s"      
-    
+    //|> formatAst
+    //|> printfn "%s"
+
 let createBasicPInvoke() =
     let mdl = "BasicPInvoke"
 
     let opn = SynModuleDecl.CreateOpen (LongIdentWithDots.CreateString "System.Runtime.InteropServices")
-        
-    let at : SynAttribute = 
+
+    let at : SynAttribute =
         {   TypeName = LongIdentWithDots.CreateString "DllImport"
             ArgExpr =
                 SynExpr.CreateParen(
@@ -134,5 +133,5 @@ let createBasicPInvoke() =
                     .AddDeclaration(dgemm)
             )
     )
-    |> formatAst
-    |> printfn "%s"
+    //|> formatAst
+    //|> printfn "%s"

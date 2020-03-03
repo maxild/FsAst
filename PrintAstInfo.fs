@@ -1,8 +1,6 @@
 [<AutoOpen>]
 module FsAst.PrintAstInfo
 
-open System.IO
-open Fantomas
 open Microsoft.FSharp.Compiler.Ast
 
 let rec printType indent typ =
@@ -74,9 +72,9 @@ let rec printPattern indent pat =
         printfn "%*sPat Wild" indent ""
     | pat -> printfn "%*sPat not matched: %A" indent "" pat
 
-let printAstInfo filename =
-    let s = File.ReadAllText filename
-    let ast = CodeFormatter.Parse(filename, s)
+let printAstInfo ast =
+    //let s = File.ReadAllText filename
+    //let ast = CodeFormatter.Parse(filename, s)
     match ast with
     | ParsedInput.ImplFile f ->
         let fr = f.ToRcd
@@ -111,7 +109,7 @@ let printAstInfo filename =
                         for field in record.Fields do
                             match field with
                             | SynField.Field(attribs, isstatic, ident, typ, e, prexmldoc, access, range) ->
-                                printfn "%s:" 
+                                printfn "%s:"
                                     (match ident with
                                      | Some i -> i.idText
                                      | None -> "")
@@ -126,7 +124,7 @@ let printAstInfo filename =
 //                    printfn "binding: %A" binding
                     printfn "  binding kind: %A" binding.Kind
                     printExpr 2 binding.Expr
-                    
+
                     match binding.ReturnInfo with
                     | Some ri ->
                         printfn "  returnInfo:"
