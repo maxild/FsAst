@@ -23,8 +23,9 @@
     <Compile Include="CreateAst.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.3.4" />
-    <PackageReference Include="FSharp.Compiler.Service" Version="23.0.3" />
+    <!-- Avoid .NET Core implicit FSharp.Core reference; add an explicit reference -->
+    <PackageReference Update="FSharp.Core" Version="4.5.2" />
+    <PackageReference Include="FSharp.Compiler.Service" Version="27.0.1" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-18618-05" PrivateAssets="All" />
   </ItemGroup>
 </Project>

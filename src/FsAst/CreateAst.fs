@@ -3,8 +3,8 @@ module FsAst.CreateAst
 
 // TODO: This file should be moved to Samples/Tests
 
-open Microsoft.FSharp.Compiler.Ast
-open Microsoft.FSharp.Compiler.Range
+open FSharp.Compiler.Ast
+open FSharp.Compiler.Range
 
 let createBasicClass() =
     let mdl = "BasicClass"
@@ -30,8 +30,6 @@ let createBasicClass() =
                     .AddDeclaration(typ)
             )
     )
-    //|> formatAst
-    //|> printfn "%s"
 
 let createBasicEnums() =
     let mdl = "BasicEnums"
@@ -61,8 +59,6 @@ let createBasicEnums() =
                     .AddDeclaration(typ)
             )
     )
-    //|> formatAst
-    //|> printfn "%s"
 
 let createBasicPInvoke() =
     let mdl = "BasicPInvoke"
@@ -74,6 +70,7 @@ let createBasicPInvoke() =
             ArgExpr =
                 SynExpr.CreateParen(
                     SynExpr.CreateTuple(
+                        false,
                         [   SynExpr.CreateConstString "blas.dll"
                             SynExpr.CreateApp(
                                 SynExpr.CreateAppInfix(
@@ -118,7 +115,7 @@ let createBasicPInvoke() =
     let dgemm =
         SynModuleDecl.CreateLet(
             { SynBindingRcd.Let with
-                Pattern = SynPatRcd.CreateLongIdent(LongIdentWithDots.CreateString "dgemm_", [SynPatRcd.CreateTuple args])
+                Pattern = SynPatRcd.CreateLongIdent(LongIdentWithDots.CreateString "dgemm_", [SynPatRcd.CreateTuple(false, args)])
                 ReturnInfo = SynBindingReturnInfoRcd.Create(SynType.CreateApp(SynType.CreateUnit, [])) |> Some
                 Attributes = [at]
             } |> List.singleton
@@ -133,5 +130,3 @@ let createBasicPInvoke() =
                     .AddDeclaration(dgemm)
             )
     )
-    //|> formatAst
-    //|> printfn "%s"

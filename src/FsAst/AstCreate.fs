@@ -1,8 +1,10 @@
 [<AutoOpen>]
 module FsAst.AstCreate
-open System
-open Microsoft.FSharp.Compiler.Ast
-open Microsoft.FSharp.Compiler.Range
+
+open FSharp.Compiler.Ast
+open FSharp.Compiler.Range
+
+// TODO: Why do we use tuple functions, and not curried functions?
 
 type Ident with
     static member Create text =
@@ -35,8 +37,8 @@ type SynConstructorArgs with
 type SynPatRcd with
     static member CreateLongIdent (id, args: SynPatRcd list) =
         SynPatRcd.LongIdent (SynPatLongIdentRcd.Create(id, args |> List.map (fun a -> a.FromRcd) |> SynConstructorArgs.Pats ))
-    static member CreateTuple patterns =
-        SynPatRcd.Tuple { Patterns = patterns; Range = range.Zero }
+    static member CreateTuple (isStruct, patterns) =
+        SynPatRcd.Tuple { IsStruct = isStruct; Patterns = patterns; Range = range.Zero }
     static member CreateParen pattern =
         SynPatRcd.Paren { Pattern = pattern; Range = range.Zero }
     static member CreateAttrib (pattern, attributes) =
@@ -81,8 +83,8 @@ type SynExpr with
         SynExpr.LongIdent(isOptional, id, altNameRefCell, range.Zero)
     static member CreateParen expr =
         SynExpr.Paren(expr, range.Zero, None, range.Zero)
-    static member CreateTuple list =
-        SynExpr.Tuple(list, [], range.Zero)
+    static member CreateTuple (isStruct, list) =
+        SynExpr.Tuple(isStruct, list, [], range.Zero)
     static member CreateNull =
         SynExpr.Null(range.Zero)
 
@@ -94,7 +96,7 @@ type SynType with
     static member CreateLongIdent s =
         SynType.CreateLongIdent(LongIdentWithDots.CreateString s)
     static member CreateUnit =
-        SynType.CreateLongIdent("unit")      
+        SynType.CreateLongIdent("unit")
 
 type SynArgInfo with
     static member Empty =
@@ -205,7 +207,7 @@ type SynModuleOrNamespaceRcd with
     static member CreateModule id =
         {   Id = id
             IsRecursive = false
-            IsModule = true
+            Kind = AnonModule // TODO: Is this the correct default (NamedModule is another possibility)
             Declarations = []
             XmlDoc = PreXmlDoc.Empty
             Attributes = SynAttributes.Empty
@@ -214,7 +216,7 @@ type SynModuleOrNamespaceRcd with
         }
     static member CreateNamespace id =
         { SynModuleOrNamespaceRcd.CreateModule id with
-            IsModule = false
+            Kind = DeclaredNamespace // TODO: GlobalNamespace another possibility?
         }
     member x.AddDeclarations decls =
         { x with
@@ -238,7 +240,7 @@ type ParsedImplFileInputRcd with
         { x with
             Modules = List.append x.Modules (modules |> List.map (fun m -> m.FromRcd))
         }
-        
+
     member x.AddModule mdl =
         x.AddModules [mdl]
 
@@ -252,21 +254,21 @@ type SynTypeDefnSimpleReprEnumRcd with
           Range = range.Zero }
 
 type SynTypeDefnSimpleReprRecordRcd with
-    static member Create (fields: SynFieldRcd list) = 
+    static member Create (fields: SynFieldRcd list) =
         { Access = None
           Fields = (fields |> List.map (fun f -> f.FromRcd))
           Range = range.Zero }
-        
+
 type SynTypeDefnSimpleReprUnionRcd with
     static member Create cases =
         { Access = None; Cases = cases; Range = range.Zero }
-            
-    static member Create (fields: SynUnionCaseRcd list) : SynTypeDefnSimpleReprUnionRcd= 
+
+    static member Create (fields: SynUnionCaseRcd list) : SynTypeDefnSimpleReprUnionRcd=
         { Access = None
           Cases = fields |> List.map (fun f -> f.FromRcd)
           Range = range.Zero }
 
-type SynUnionCaseRcd with 
+type SynUnionCaseRcd with
     static member Create(id, typ) : SynUnionCaseRcd =
         { Attributes = SynAttributes.Empty
           Id = id
@@ -274,7 +276,7 @@ type SynUnionCaseRcd with
           XmlDoc = PreXmlDoc.Empty
           Access = None
           Range = range.Zero }
-          
+
 type SynUnionCaseType with
     static member Create(synFieldList : SynFieldRcd list) =
         SynUnionCaseType.UnionCaseFields(synFieldList |> List.map (fun sf -> sf.FromRcd ))
@@ -298,12 +300,12 @@ type SynFieldRcd with
             IsMutable = isMutable
             XmlDoc = PreXmlDoc.Empty
             Access = None
-            Range = range.Zero 
+            Range = range.Zero
         }
     static member Create(id, typ) =
         SynFieldRcd.Create(Ident.Create id, SynType.CreateLongIdent typ)
     static member CreateInt(id) =
-        SynFieldRcd.Create(Ident.Create id, SynType.CreateLongIdent "int") 
+        SynFieldRcd.Create(Ident.Create id, SynType.CreateLongIdent "int")
     static member CreateString(id) =
         SynFieldRcd.Create(Ident.Create id, SynType.CreateLongIdent "string")
     static member CreateApp id typ args =

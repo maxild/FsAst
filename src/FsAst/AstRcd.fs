@@ -1,9 +1,8 @@
 [<AutoOpen>]
 module FsAst.AstRcd
 
-open System
-open Microsoft.FSharp.Compiler.Ast
-open Microsoft.FSharp.Compiler.Range
+open FSharp.Compiler.Ast
+open FSharp.Compiler.Range
 
 type ParsedImplFileInputRcd = {
     File: string
@@ -26,7 +25,7 @@ type ParsedImplFileInput with
 type SynModuleOrNamespaceRcd = {
     Id: LongIdent
     IsRecursive: bool
-    IsModule: bool
+    Kind: SynModuleOrNamespaceKind
     Declarations: SynModuleDecls
     XmlDoc: PreXmlDoc
     Attributes: SynAttributes
@@ -34,12 +33,12 @@ type SynModuleOrNamespaceRcd = {
     Range: range }
 with
     member x.FromRcd =
-        SynModuleOrNamespace(x.Id, x.IsRecursive, x.IsModule, x.Declarations, x.XmlDoc, x.Attributes, x.Access, x.Range)
+        SynModuleOrNamespace(x.Id, x.IsRecursive, x.Kind, x.Declarations, x.XmlDoc, x.Attributes, x.Access, x.Range)
 
 type SynModuleOrNamespace with
     member x.ToRcd =
-        let (SynModuleOrNamespace(id, isRecursive, isModule, declarations, xmlDoc, attributes, access, range)) = x
-        { Id = id; IsRecursive = isRecursive; IsModule = isModule; Declarations = declarations; XmlDoc = xmlDoc; Attributes = attributes; Access = access; Range = range }
+        let (SynModuleOrNamespace(id, isRecursive, kind, declarations, xmlDoc, attributes, access, range)) = x
+        { Id = id; IsRecursive = isRecursive; Kind = kind; Declarations = declarations; XmlDoc = xmlDoc; Attributes = attributes; Access = access; Range = range }
 
 type SynComponentInfoRcd = {
     Attributes: SynAttributes
@@ -161,6 +160,7 @@ and SynPatLongIdentRcd = {
     Range: range }
 
 and SynPatTupleRcd = {
+    IsStruct: bool
     Patterns: SynPatRcd list
     Range: range }
 
@@ -196,7 +196,7 @@ and SynPatAttribRcd with
 and SynPatLongIdentRcd with
     member x.FromRcd = SynPat.LongIdent(x.Id, None, None, x.Args, None, x.Range)
 and SynPatTupleRcd with
-    member x.FromRcd = SynPat.Tuple(x.Patterns |> List.map (fun p -> p.FromRcd), x.Range)
+    member x.FromRcd = SynPat.Tuple(x.IsStruct, x.Patterns |> List.map (fun p -> p.FromRcd), x.Range)
 and SynPatParenRcd with
     member x.FromRcd = SynPat.Paren(x.Pattern.FromRcd, x.Range)
 and SynPatNullRcd with
@@ -219,8 +219,8 @@ type SynPat with
 //        | SynPat.Ands
         | SynPat.LongIdent(id, _, _, args, access, range) ->
             SynPatRcd.LongIdent { Id = id; Args = args; Access = access; Range = range }
-        | SynPat.Tuple(patterns, range) ->
-            SynPatRcd.Tuple { Patterns = patterns |> List.map (fun p -> p.ToRcd); Range = range }
+        | SynPat.Tuple(isStruct, patterns, range) ->
+            SynPatRcd.Tuple { IsStruct = isStruct; Patterns = patterns |> List.map (fun p -> p.ToRcd); Range = range }
         | SynPat.Paren(pattern, range) ->
             SynPatRcd.Paren { Pattern = pattern.ToRcd; Range = range }
 //        | SynPat.ArrayOrList
@@ -306,11 +306,11 @@ and SynTypeDefnSimpleReprGeneralRcd = {
     Range: range }
 
 and SynTypeDefnSimpleReprLibraryOnlyILAssemblyRcd = {
-    ILType: Microsoft.FSharp.Compiler.AbstractIL.IL.ILType
+    ILType: FSharp.Compiler.AbstractIL.IL.ILType
     Range: range }
 
 and SynTypeDefnSimpleReprTypeAbbrevRcd = {
-    ParseDetail: Microsoft.FSharp.Compiler.Ast.ParserDetail
+    ParseDetail: FSharp.Compiler.Ast.ParserDetail
     Type: SynType
     Range: range }
 

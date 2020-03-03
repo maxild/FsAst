@@ -1,7 +1,7 @@
 [<AutoOpen>]
 module FsAst.PrintAstInfo
 
-open Microsoft.FSharp.Compiler.Ast
+open FSharp.Compiler.Ast
 
 let rec printType indent typ =
     match typ with
@@ -24,7 +24,7 @@ let rec printExpr indent expr =
     | SynExpr.Paren(innerExpr, _, _, _) ->
         printfn "%*sParen expr" indent ""
         printExpr (indent+2) innerExpr
-    | SynExpr.Tuple(exprs, _, _) ->
+    | SynExpr.Tuple(_ , exprs, _, _) ->
         printfn "%*sTuple expr %d" indent "" exprs.Length
         for exp in exprs do
             printExpr (indent+2) exp
@@ -54,7 +54,7 @@ let rec printPattern indent pat =
             for id, p in namedPats do
                 printfn "%*s  id: %s" indent "" id.idText
                 printPattern (indent+4) p
-    | SynPat.Tuple (pats, _) ->
+    | SynPat.Tuple (_, pats, _) ->
         printfn "%*sPat Tuple %d" indent "" pats.Length
         for p in pats do
             printPattern (indent+2) p
