@@ -5,7 +5,12 @@
 Generating F# code using its AST
 http://blog.ctaggart.com/2014/09/generating-f-code-using-its-ast.html
 
-uses [Fantomas] and [FSharp.Compiler.Service]
+uses [FSharp.Compiler.Service]
+
+[FSharp.Compiler.Service]: https://github.com/fsharp/FSharp.Compiler.Service
+
+can be used together with 
 
 [Fantomas]: https://github.com/dungpa/fantomas
-[FSharp.Compiler.Service]: https://github.com/fsharp/FSharp.Compiler.Service
+
+to generate code from untyped AST

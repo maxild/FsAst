@@ -1,4 +1,4 @@
-$version = '0.1.0' # the version under development, update after a release
+$version = '0.2.0' # the version under development, update after a release
 $versionSuffix = '-build.0' # manually incremented for local builds
 
 function isVersionTag($tag){
@@ -16,5 +16,6 @@ if ($env:appveyor){
 }
 
 dotnet build -c Release FsAst.sln /p:Version=$version$versionSuffix
-# dotnet test --no-build -c Release FsAst.Test.fsproj
-dotnet pack --no-build -c Release FsAst.fsproj /p:Version=$version$versionSuffix -o $psscriptroot/bin
+dotnet test --no-build -c Release tests/FsAst.Tests/FsAst.Test.fsproj
+
+dotnet pack --no-build -c Release src/FsAst/FsAst.fsproj /p:Version=$version$versionSuffix -o $psscriptroot/artifacts
