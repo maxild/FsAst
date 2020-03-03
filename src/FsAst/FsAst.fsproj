@@ -24,8 +24,8 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Avoid .NET Core implicit FSharp.Core reference; add an explicit reference -->
-    <PackageReference Update="FSharp.Core" Version="4.5.2" />
-    <PackageReference Include="FSharp.Compiler.Service" Version="27.0.1" />
+    <PackageReference Update="FSharp.Core" Version="4.6.2" />
+    <PackageReference Include="FSharp.Compiler.Service" Version="29.0.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-18618-05" PrivateAssets="All" />
   </ItemGroup>
 </Project>
