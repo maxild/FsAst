@@ -16,6 +16,6 @@ if ($env:appveyor){
 }
 
 dotnet build -c Release FsAst.sln /p:Version=$version$versionSuffix
-dotnet test --no-build -c Release tests/FsAst.Tests/FsAst.Test.fsproj
+dotnet test --no-build -c Release tests/FsAst.Tests/FsAst.Tests.fsproj
 
 dotnet pack --no-build -c Release src/FsAst/FsAst.fsproj /p:Version=$version$versionSuffix -o $psscriptroot/artifacts

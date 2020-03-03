@@ -22,6 +22,17 @@ type ParsedImplFileInput with
         let (ParsedImplFileInput(file, isScript, qualName, pragmas, hashDirectives, modules, (isLastCompiland, isExe))) = x
         { File = file; IsScript = isScript; QualName = qualName; Pragmas = pragmas; HashDirectives = hashDirectives; Modules = modules; IsLastCompiland = isLastCompiland; IsExe = isExe }
 
+
+type XmlDoc with
+    member x.Lines =
+        match x with
+        | XmlDoc lines -> lines
+
+type PreXmlDoc with
+        member x.Lines  =
+            x.ToXmlDoc().Lines
+
+
 type SynModuleOrNamespaceRcd = {
     Id: LongIdent
     IsRecursive: bool
@@ -40,10 +51,12 @@ type SynModuleOrNamespace with
         let (SynModuleOrNamespace(id, isRecursive, kind, declarations, xmlDoc, attributes, access, range)) = x
         { Id = id; IsRecursive = isRecursive; Kind = kind; Declarations = declarations; XmlDoc = xmlDoc; Attributes = attributes; Access = access; Range = range }
 
+
+/// Information associated with type definition or module
 type SynComponentInfoRcd = {
     Attributes: SynAttributes
-    Parameters: SynTyparDecl list
-    Constraints: SynTypeConstraint list
+    Parameters: SynTyparDecl list         // TODO: TypeParameters is a better name here
+    Constraints: SynTypeConstraint list   // TODO: TypeConstraints is a better name here (SRTP?)
     Id: LongIdent
     XmlDoc: PreXmlDoc
     PreferPostfix: bool
@@ -57,6 +70,10 @@ type SynComponentInfo with
     member x.ToRcd =
         let (ComponentInfo(attributes, parameters, constraints, id, xmldoc, preferPostfix, access, range)) = x
         { Attributes = attributes; Parameters = parameters; Constraints = constraints; Id = id; XmlDoc = xmldoc; PreferPostfix = preferPostfix; Access = access; Range = range }
+
+//
+// Type definitions
+//
 
 type SynTypeDefnRcd = {
     Info: SynComponentInfoRcd
@@ -80,6 +97,7 @@ with
     member x.FromRcd =
         SynTypeDefnRepr.ObjectModel(x.Kind, x.Members, x.Range)
 
+/// Simple: Union, Enum, Record, General, TypeAbbrev, Exception
 type SynTypeDefnReprSimpleRcd = {
     Repr: SynTypeDefnSimpleRepr
     Range: range }
@@ -106,6 +124,101 @@ type SynTypeDefnRepr with
             SynTypeDefnReprRcd.Simple { Repr = repr; Range = range }
         | SynTypeDefnRepr.Exception _ -> failwith "Not supported"
 
+[<RequireQualifiedAccess>]
+type SynTypeDefnSimpleReprRcd =
+    | Union of SynTypeDefnSimpleReprUnionRcd
+    | Enum of SynTypeDefnSimpleReprEnumRcd
+    | Record of SynTypeDefnSimpleReprRecordRcd
+    | General of SynTypeDefnSimpleReprGeneralRcd
+    | LibraryOnlyILAssembly of SynTypeDefnSimpleReprLibraryOnlyILAssemblyRcd
+    | TypeAbbrev of SynTypeDefnSimpleReprTypeAbbrevRcd
+    | None of SynTypeDefnSimpleReprNoneRcd
+
+and SynTypeDefnSimpleReprUnionRcd = {
+    Access: SynAccess option
+    Cases: SynUnionCases
+    Range: range }
+
+and SynTypeDefnSimpleReprEnumRcd = {
+    Cases: SynEnumCases
+    Range: range }
+
+and  SynTypeDefnSimpleReprRecordRcd = {
+    Access: SynAccess option
+    Fields: SynFields
+    Range: range }
+
+and SynTypeDefnSimpleReprGeneralRcd = {
+    Kind: SynTypeDefnKind
+    // TODO incomplete
+    // (SynType * range * Ident option) list
+    // (SynValSig * MemberFlags) list
+    // SynField list
+    // bool
+    // bool
+    // SynSimplePat list option
+    Range: range }
+
+and SynTypeDefnSimpleReprLibraryOnlyILAssemblyRcd = {
+    ILType: FSharp.Compiler.AbstractIL.IL.ILType
+    Range: range }
+
+and SynTypeDefnSimpleReprTypeAbbrevRcd = {
+    ParseDetail: FSharp.Compiler.Ast.ParserDetail
+    Type: SynType
+    Range: range }
+
+and SynTypeDefnSimpleReprNoneRcd = {
+    Range: range }
+
+type SynTypeDefnSimpleReprRcd with
+    member x.FromRcd =
+        match x with
+        | Union u -> u.FromRcd
+        | Enum e -> e.FromRcd
+        | Record r -> r.FromRcd
+        | General g -> g.FromRcd
+        | LibraryOnlyILAssembly a -> a.FromRcd
+        | TypeAbbrev a -> a.FromRcd
+        | None n -> n.FromRcd
+and SynTypeDefnSimpleReprUnionRcd with
+    member x.FromRcd = SynTypeDefnSimpleRepr.Union(x.Access, x.Cases, x.Range)
+and SynTypeDefnSimpleReprEnumRcd with
+    member x.FromRcd = SynTypeDefnSimpleRepr.Enum(x.Cases, x.Range)
+and SynTypeDefnSimpleReprRecordRcd with
+    member x.FromRcd = SynTypeDefnSimpleRepr.Record(x.Access, x.Fields, x.Range)
+and SynTypeDefnSimpleReprGeneralRcd with
+    member x.FromRcd =  SynTypeDefnSimpleRepr.General(x.Kind, [], [], [], false, false, Option.None, x.Range) // TODO
+and SynTypeDefnSimpleReprLibraryOnlyILAssemblyRcd with
+    member x.FromRcd = SynTypeDefnSimpleRepr.LibraryOnlyILAssembly(x.ILType, x.Range)
+and SynTypeDefnSimpleReprTypeAbbrevRcd with
+    member x.FromRcd = SynTypeDefnSimpleRepr.TypeAbbrev(x.ParseDetail, x.Type, x.Range)
+and SynTypeDefnSimpleReprNoneRcd with
+    member x.FromRcd = SynTypeDefnSimpleRepr.None(x.Range)
+
+type SynTypeDefnSimpleRepr with
+    member x.ToRcd =
+        match x with
+        | SynTypeDefnSimpleRepr.Union(access, cases, range) ->
+            SynTypeDefnSimpleReprRcd.Union { Access = access; Cases = cases; Range = range }
+        | SynTypeDefnSimpleRepr.Enum(cases, range) ->
+            SynTypeDefnSimpleReprRcd.Enum { Cases = cases; Range = range }
+        | SynTypeDefnSimpleRepr.Record(access, fields, range) ->
+            SynTypeDefnSimpleReprRcd.Record { Access = access; Fields = fields; Range = range }
+        | SynTypeDefnSimpleRepr.General(kind, _, _, _, _ , _, _, range) -> // TODO
+            SynTypeDefnSimpleReprRcd.General { Kind = kind; Range = range }
+        | SynTypeDefnSimpleRepr.LibraryOnlyILAssembly(iltype, range) ->
+            SynTypeDefnSimpleReprRcd.LibraryOnlyILAssembly { ILType = iltype; Range = range }
+        | SynTypeDefnSimpleRepr.TypeAbbrev(parseDetail, typ, range) ->
+            SynTypeDefnSimpleReprRcd.TypeAbbrev { ParseDetail = parseDetail; Type = typ; Range = range }
+        | SynTypeDefnSimpleRepr.None(range) ->
+            SynTypeDefnSimpleReprRcd.None { Range = range }
+        | SynTypeDefnSimpleRepr.Exception _ -> failwith "not supported"
+
+//
+// Pattern matching
+//
+
 // TODO other SynPat cases
 [<RequireQualifiedAccess>]
 type SynPatRcd =
@@ -114,8 +227,8 @@ type SynPatRcd =
     | Named of SynPatNamedRcd
     | Typed of SynPatTypedRcd
     | Attrib of SynPatAttribRcd
-//    | Or
-//    | Ands
+ //   | Or of SynPatRcd * SynPatRcd
+ //   | Ands of SynPatRcd list
     | LongIdent of SynPatLongIdentRcd
     | Tuple of SynPatTupleRcd
     | Paren of SynPatParenRcd
@@ -235,6 +348,10 @@ type SynPat with
 //        | SynPat.FromParseError
         | _ -> failwithf "SynPat.ToRcd not implemented for %A" x
 
+//
+// Binding
+//
+
 type SynBindingReturnInfoRcd = {
     Type: SynType
     Range: range
@@ -248,6 +365,7 @@ type SynBindingReturnInfo with
         let (SynBindingReturnInfo(typ, range, attributes)) = x
         { Type = typ; Range = range; Attributes = attributes }
 
+/// standalone binding, let binding or do binding
 type SynBindingRcd = {
     Access: SynAccess option
     Kind: SynBindingKind
@@ -270,97 +388,8 @@ type SynBinding with
         let (Binding(access, kind, isInline, isMutable, attrs, xmlDoc, info, pattern, returnInfo, rhsExpr, mBind, spBind)) = x
         { Access = access; Kind = kind; IsInline = isInline; IsMutable = isMutable; Attributes = attrs; XmlDoc = xmlDoc; ValData = info; Pattern = pattern.ToRcd; ReturnInfo = returnInfo |> Option.map (fun ri -> ri.ToRcd); Expr = rhsExpr; Range = mBind; Bind = spBind }
 
-[<RequireQualifiedAccess>]
-type SynTypeDefnSimpleReprRcd =
-    | Union of SynTypeDefnSimpleReprUnionRcd
-    | Enum of SynTypeDefnSimpleReprEnumRcd
-    | Record of SynTypeDefnSimpleReprRecordRcd
-    | General of SynTypeDefnSimpleReprGeneralRcd
-    | LibraryOnlyILAssembly of SynTypeDefnSimpleReprLibraryOnlyILAssemblyRcd
-    | TypeAbbrev of SynTypeDefnSimpleReprTypeAbbrevRcd
-    | None of SynTypeDefnSimpleReprNoneRcd
 
-and SynTypeDefnSimpleReprUnionRcd = {
-    Access: SynAccess option
-    Cases: SynUnionCases
-    Range: range }
-
-and SynTypeDefnSimpleReprEnumRcd = {
-    Cases: SynEnumCases
-    Range: range }
-
-and  SynTypeDefnSimpleReprRecordRcd = {
-    Access: SynAccess option
-    Fields: SynFields
-    Range: range }
-
-and SynTypeDefnSimpleReprGeneralRcd = {
-    Kind: SynTypeDefnKind
-    // TODO incomplete
-    // (SynType * range * Ident option) list
-    // (SynValSig * MemberFlags) list
-    // SynField list
-    // bool
-    // bool
-    // SynSimplePat list option
-    Range: range }
-
-and SynTypeDefnSimpleReprLibraryOnlyILAssemblyRcd = {
-    ILType: FSharp.Compiler.AbstractIL.IL.ILType
-    Range: range }
-
-and SynTypeDefnSimpleReprTypeAbbrevRcd = {
-    ParseDetail: FSharp.Compiler.Ast.ParserDetail
-    Type: SynType
-    Range: range }
-
-and SynTypeDefnSimpleReprNoneRcd = {
-    Range: range }
-
-type SynTypeDefnSimpleReprRcd with
-    member x.FromRcd =
-        match x with
-        | Union u -> u.FromRcd
-        | Enum e -> e.FromRcd
-        | Record r -> r.FromRcd
-        | General g -> g.FromRcd
-        | LibraryOnlyILAssembly a -> a.FromRcd
-        | TypeAbbrev a -> a.FromRcd
-        | None n -> n.FromRcd
-and SynTypeDefnSimpleReprUnionRcd with
-    member x.FromRcd = SynTypeDefnSimpleRepr.Union(x.Access, x.Cases, x.Range)
-and SynTypeDefnSimpleReprEnumRcd with
-    member x.FromRcd = SynTypeDefnSimpleRepr.Enum(x.Cases, x.Range)
-and SynTypeDefnSimpleReprRecordRcd with
-    member x.FromRcd = SynTypeDefnSimpleRepr.Record(x.Access, x.Fields, x.Range)
-and SynTypeDefnSimpleReprGeneralRcd with
-    member x.FromRcd =  SynTypeDefnSimpleRepr.General(x.Kind, [], [], [], false, false, Option.None, x.Range) // TODO
-and SynTypeDefnSimpleReprLibraryOnlyILAssemblyRcd with
-    member x.FromRcd = SynTypeDefnSimpleRepr.LibraryOnlyILAssembly(x.ILType, x.Range)
-and SynTypeDefnSimpleReprTypeAbbrevRcd with
-    member x.FromRcd = SynTypeDefnSimpleRepr.TypeAbbrev(x.ParseDetail, x.Type, x.Range)
-and SynTypeDefnSimpleReprNoneRcd with
-    member x.FromRcd = SynTypeDefnSimpleRepr.None(x.Range)
-
-type SynTypeDefnSimpleRepr with
-    member x.ToRcd =
-        match x with
-        | SynTypeDefnSimpleRepr.Union(access, cases, range) ->
-            SynTypeDefnSimpleReprRcd.Union { Access = access; Cases = cases; Range = range }
-        | SynTypeDefnSimpleRepr.Enum(cases, range) ->
-            SynTypeDefnSimpleReprRcd.Enum { Cases = cases; Range = range }
-        | SynTypeDefnSimpleRepr.Record(access, fields, range) ->
-            SynTypeDefnSimpleReprRcd.Record { Access = access; Fields = fields; Range = range }
-        | SynTypeDefnSimpleRepr.General(kind, _, _, _, _ , _, _, range) -> // TODO
-            SynTypeDefnSimpleReprRcd.General { Kind = kind; Range = range }
-        | SynTypeDefnSimpleRepr.LibraryOnlyILAssembly(iltype, range) ->
-            SynTypeDefnSimpleReprRcd.LibraryOnlyILAssembly { ILType = iltype; Range = range }
-        | SynTypeDefnSimpleRepr.TypeAbbrev(parseDetail, typ, range) ->
-            SynTypeDefnSimpleReprRcd.TypeAbbrev { ParseDetail = parseDetail; Type = typ; Range = range }
-        | SynTypeDefnSimpleRepr.None(range) ->
-            SynTypeDefnSimpleReprRcd.None { Range = range }
-        | SynTypeDefnSimpleRepr.Exception _ -> failwith "not supported"
-
+/// one case in an enum definition
 type SynEnumCaseRcd = {
     Attributes: SynAttributes
     Id: Ident
@@ -377,16 +406,8 @@ type SynEnumCase with
         | EnumCase(attributes, id, constant, xmlDoc, range) ->
             { Attributes = attributes; Id = id; Constant = constant; XmlDoc = xmlDoc; Range = range }
 
-type XmlDoc with
-    member x.Lines =
-        match x with
-        | XmlDoc lines -> lines
 
-type PreXmlDoc with
-    member x.Lines  =
-        x.ToXmlDoc().Lines
-
-
+/// one case in a union definition
 type SynUnionCaseRcd = {
     Attributes: SynAttributes
     Id: Ident
@@ -404,6 +425,8 @@ type SynUnionCase with
         | SynUnionCase.UnionCase(attributes, id, typ, xmlDoc, access, range) ->
             { Attributes = attributes; Id = id; Type = typ; XmlDoc = xmlDoc; Access = access; Range = range }
 
+
+/// field declaration in a record or class
 type SynFieldRcd = {
     Attributes: SynAttributes
     IsStatic: bool

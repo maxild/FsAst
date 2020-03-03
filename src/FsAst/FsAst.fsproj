@@ -20,7 +20,6 @@
     <Compile Include="AstRcd.fs" />
     <Compile Include="AstCreate.fs" />
     <Compile Include="PrintAstInfo.fs" />
-    <Compile Include="CreateAst.fs" />
   </ItemGroup>
   <ItemGroup>
     <!-- Avoid .NET Core implicit FSharp.Core reference; add an explicit reference -->

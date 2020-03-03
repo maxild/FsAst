@@ -1,7 +1,12 @@
 image: Visual Studio 2019
+
+init:
+  - git config --global core.autocrlf input
+
 build_script:
   - ps: |
       .\build.ps1
       if ($lastexitcode -ne 0){ exit $lastexitcode }
+
 artifacts:
   - path: artifacts\*.nupkg

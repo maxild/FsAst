@@ -6,6 +6,11 @@ open FSharp.Compiler.Range
 
 // TODO: Why do we use tuple functions, and not curried functions?
 
+//
+// Identifiers
+//    Foo
+//    Foo.Bar
+
 type Ident with
     static member Create text =
         Ident(text, range.Zero)
@@ -153,7 +158,6 @@ type SynComponentInfoRcd with
 
 type SynMemberDefn with
     static member CreateImplicitCtor() =
-        // TODO: SynSimplePats can either by SimplePats (a, b) or Typed (a: Type, b: Type)
         SynMemberDefn.ImplicitCtor(None, SynAttributes.Empty, SynSimplePats.SimplePats ([], range.Zero), None, range.Zero)
     static member CreateMember (binding: SynBindingRcd) =
         SynMemberDefn.Member(binding.FromRcd, range.Zero)
@@ -169,13 +173,15 @@ type SynTypeDefnReprObjectModelRcd with
         }
 
 type SynTypeDefnRcd with
-    static member Create (info: SynComponentInfoRcd, members) =
+    /// Create an object type definition (TyconUnspecified is the default representation)
+    static member CreateObjectType (info: SynComponentInfoRcd, members) =
         {   Info = info
             Repr = SynTypeDefnReprObjectModelRcd.Create(members).FromRcd
             Members = []
             Range = range.Zero
         }
-    static member CreateSimple (info: SynComponentInfoRcd, simple: SynTypeDefnSimpleRepr, ?members) =
+    // Create a simple type definition (DU, Enum, Record, TypeAbbrev, Exception)
+    static member CreateSimpleType (info: SynComponentInfoRcd, simple: SynTypeDefnSimpleRepr, ?members) =
         {   Info = info
             Repr =  SynTypeDefnRepr.Simple(simple, range.Zero)
             Members = Option.defaultValue [] members
@@ -183,10 +189,10 @@ type SynTypeDefnRcd with
         }
 
 type SynModuleDecl with
-    static member CreateType (info, members) =
-        SynModuleDecl.Types([SynTypeDefnRcd.Create(info, members).FromRcd], range.Zero)
+    static member CreateObjectType (info, members) =
+        SynModuleDecl.Types([SynTypeDefnRcd.CreateObjectType(info, members).FromRcd], range.Zero)
     static member CreateSimpleType (info, simple: SynTypeDefnSimpleReprRcd, ?members) =
-        SynModuleDecl.Types( [SynTypeDefnRcd.CreateSimple(info, simple.FromRcd, members = Option.defaultValue [] members).FromRcd], range.Zero)
+        SynModuleDecl.Types([SynTypeDefnRcd.CreateSimpleType(info, simple.FromRcd, members = Option.defaultValue [] members).FromRcd], range.Zero)
     static member CreateOpen id =
         SynModuleDecl.Open(id, range.Zero)
     static member CreateHashDirective (directive, values) =

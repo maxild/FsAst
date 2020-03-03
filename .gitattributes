@@ -1,8 +1,5 @@
-# Autodetect text or binary. Do not leave merge conflict markers in the files.
-* text=auto merge=union
+# Autodetect text or binary.
+* text=auto
 
-# Use LF in the working directory by default. Override with core.autocrlf=true.
-*.fs eol=lf
-
-# Visual Studio can read LF sln files, but it always writes them as CRLF.
-*.sln eol=crlf
+# Tests will fail if literal strings does not have win style CRLF
+tests/FsAst.Tests/Tests.fs text eol=crlf
