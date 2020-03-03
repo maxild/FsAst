@@ -117,7 +117,8 @@ let createBasicPInvoke() =
             { SynBindingRcd.Let with
                 Pattern = SynPatRcd.CreateLongIdent(LongIdentWithDots.CreateString "dgemm_", [SynPatRcd.CreateTuple(false, args)])
                 ReturnInfo = SynBindingReturnInfoRcd.Create(SynType.CreateApp(SynType.CreateUnit, [])) |> Some
-                Attributes = [at]
+                Attributes = [ { Attributes = [at]
+                                 Range = range.Zero }]
             } |> List.singleton
      )
 

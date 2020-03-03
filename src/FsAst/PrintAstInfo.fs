@@ -132,9 +132,10 @@ let printAstInfo ast =
                     | None -> ()
 
                     printfn "binding, %d attributes" binding.Attributes.Length
-                    for attr in binding.Attributes do
-                        printfn "  attribute: %s" attr.TypeName.AsString
-                        printExpr 4 attr.ArgExpr
+                    for attrs in binding.Attributes do
+                        for attr in attrs.Attributes do
+                            printfn "  attribute: %s" attr.TypeName.AsString
+                            printExpr 4 attr.ArgExpr
                     match binding.ValData with
                     | SynValData.SynValData(memberFlags, valInfo, id) ->
                         printfn "  ValData: id %A, %d args" id valInfo.ArgInfos.Length

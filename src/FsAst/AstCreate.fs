@@ -153,8 +153,9 @@ type SynComponentInfoRcd with
 
 type SynMemberDefn with
     static member CreateImplicitCtor() =
-        SynMemberDefn.ImplicitCtor(None, SynAttributes.Empty, [], None, range.Zero)
-    static member CreateMember (binding:SynBindingRcd) =
+        // TODO: SynSimplePats can either by SimplePats (a, b) or Typed (a: Type, b: Type)
+        SynMemberDefn.ImplicitCtor(None, SynAttributes.Empty, SynSimplePats.SimplePats ([], range.Zero), None, range.Zero)
+    static member CreateMember (binding: SynBindingRcd) =
         SynMemberDefn.Member(binding.FromRcd, range.Zero)
     static member CreateInterface(interfaceType, members) =
         SynMemberDefn.Interface(interfaceType, members, range.Zero)
